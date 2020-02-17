@@ -19,29 +19,6 @@ data <- data %>%
   print()
 
 
-# Assess collinearity of predictors together - for multivariate models only
-z <- cbind(data$area, data$dist_nn, data$distw_ml, data$slope, data$wrack_gperm2)
-colnames(z) <- c("area", "NN", "dist ml", "slope", "wrack")
-cor(z)
-pairs(z)
-
-panel.cor <- function(x, y, digits=2, prefix="", cex.cor, ...)
-{
-  usr = par("usr"); on.exit(par(usr))
-  par(usr = c(0, 1, 0, 1))
-  r = cor(x, y, use="na.or.complete")
-  txt = format(c(r, 0.123456789), digits=digits)[1]
-  txt = paste(prefix, txt, sep="")
-  if(missing(cex.cor)) cex.cor = 0.8/strwidth(txt)
-  text(0.5, 0.5, txt, cex = 1.5)#cex.cor * r)
-}
-
-pairs(z,
-      upper.panel = panel.cor,
-      cex=1.75,
-      pch=16)
-
-
 ##############################################################################################################################################################
 
                                                                 ######################
@@ -200,8 +177,33 @@ ggplot(data, aes(x=log_slope, y=log_s1)) +
   theme(axis.ticks = element_line(size=2))
 
 
-
-
+  ##############################################################################################################################################################
+  
+                                                                    ########################
+                                                                    # MULTIVARIATE MODELS  #
+                                                                    ########################
+  
+  
+# Asess collinearity of predictors together  
+z <- cbind(data$area, data$dist_nn, data$distw_ml, data$slope, data$wrack_gperm2)
+colnames(z) <- c("area", "NN", "dist ml", "slope", "wrack")
+cor(z)
+pairs(z)
+  
+panel.cor <- function(x, y, digits=2, prefix="", cex.cor, ...)
+  {
+  usr = par("usr"); on.exit(par(usr))
+  par(usr = c(0, 1, 0, 1))
+  r = cor(x, y, use="na.or.complete")
+  txt = format(c(r, 0.123456789), digits=digits)[1]
+  txt = paste(prefix, txt, sep="")
+  if(missing(cex.cor)) cex.cor = 0.8/strwidth(txt)
+  text(0.5, 0.5, txt, cex = 1.5)#cex.cor * r)
+  }
+  
+pairs(z, upper.panel = panel.cor, cex=1.75, pch=16)
+  
+  
 
 
 
