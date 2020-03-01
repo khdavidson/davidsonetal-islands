@@ -8,7 +8,7 @@ library(car)
 # read island and wrack data files 
 setwd("~/UVic/`Field Work 2016/`RESULTS/Data files ch 2")
 isl_data <- read.csv("islands_master_feb2020.csv")
-wrack_data <- read.csv("wrack_biomass_SEPT2017.csv")
+wrack_data <- read.csv("wrack_biomass_SEPT2017.csv")       # NEEDS NEW WRACK DATA NEXT DAY! 
 wrack_data2 <- read.csv("dry_wrack_biomass2.csv")
 
 ###########################
