@@ -45,7 +45,7 @@ wrack_isl_forjoin <- wrack_isl %>%
 ########
 
 isl_master <- left_join(isl_data, wrack_isl_forjoin, by="island")
-
+write.csv(isl_master, "island_master_feb2020.csv")
 
 #####################
 # CLEAN MASTER DATA #
@@ -225,7 +225,10 @@ ggplot(data, aes(x=log_slope, y=log_s1)) +
                                                                     ########################
                                                                     # MULTIVARIATE MODELS  #
                                                                     ########################
-
+#################################
+# ASSESS PREDICTOR COLLINEARITY #  
+#################################  
+  
 # Asess collinearity of predictors together  
 z <- cbind(isl_master$log_area, isl_master$log_dist_nn, isl_master$log_dist_ml, isl_master$log_slope, isl_master$log_wrack1)
 colnames(z) <- c("area", "NN", "dist ml", "slope", "wrack")
@@ -242,10 +245,9 @@ panel.cor <- function(x, y, digits=2, prefix="", cex.cor, ...)
   if(missing(cex.cor)) cex.cor = 0.8/strwidth(txt)
   text(0.5, 0.5, txt, cex = 1.5)#cex.cor * r)
   }
-  
 pairs(z, upper.panel = panel.cor, cex=1.75, pch=16)
   
-  
+
 # global model VIF 
 m_global <- glm(n_spp ~ log_area + log_dist_nn + log_dist_ml + log_slope + log_wrack1, family=poisson(link = "log"), data=isl_master)
 summary(m_global)
@@ -257,7 +259,9 @@ qqline(resid(m_global))
 vif(m_global)
 
 
-
+##############
+# FIT MODELS #
+##############
 
 
 
