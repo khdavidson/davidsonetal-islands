@@ -3,17 +3,60 @@
 ## re-analyzed Feb 2020
 
 library(tidyverse)
+library(car)
 
-# read
+# read island and wrack data files 
 setwd("~/UVic/`Field Work 2016/`RESULTS/Data files ch 2")
-data <- read.csv("islands_master_feb2020.csv")
+isl_data <- read.csv("islands_master_feb2020.csv")
+wrack_data <- read.csv("wrack_biomass_SEPT2017.csv")
+wrack_data2 <- read.csv("dry_wrack_biomass2.csv")
 
-# create new log-transformed variables to use 
-data <- data %>% 
+###########################
+# WRACK DATA ORGANIZATION #
+###########################
+
+# restructure wrack data
+wrack_data <- wrack_data %>% 
+  select(-c(47)) %>% 
+  gather(species, biomass, c(3:46)) %>% 
+  print()
+
+# calculate average biomass (g/m2) at each site (six 1m2 quadrats per site)
+wrack_site <- wrack_data %>% 
+  group_by(island, NODE_ISLAND_SITE) %>% 
+  summarize(SITE_sum = sum(biomass)) %>% 
+  mutate(avg_biomass_site = SITE_sum/6) %>% 
+  mutate(n_sites = n()) %>%
+  print()
+
+# standardize per island (i.e., number of sites per island, minimum 4 per island, some with more if more beaches)
+wrack_isl <- wrack_site %>% 
+  group_by(island) %>% 
+  summarize(total_biomass = sum(avg_biomass_site), n_sites=unique(n_sites)) %>% 
+  mutate(wrack_std_isl = total_biomass/n_sites) %>%
+  print()
+
+wrack_isl_forjoin <- wrack_isl %>%
+  select(c(1,4)) %>% 
+  print()
+
+########
+# JOIN #
+########
+
+isl_master <- left_join(isl_data, wrack_isl_forjoin, by="island")
+
+
+#####################
+# CLEAN MASTER DATA #
+#####################
+ 
+isl_master <- isl_master %>% 
+  select(-c(16:18)) %>% 
   mutate(log_area = log(area)) %>% 
   mutate(log_dist_ml = log(distw_ml)) %>% 
   mutate(log_dist_nn = log(dist_nn)) %>% 
-  mutate(log_wrack1 = log(wrack_biom+1)) %>%
+  mutate(log_wrack1 = log(wrack_std_isl+1)) %>%
   mutate(log_slope = log(slope)) %>%
   mutate(log_s1 = log(n_spp+1)) %>%
   print()
@@ -21,9 +64,9 @@ data <- data %>%
 
 ##############################################################################################################################################################
 
-                                                                ######################
-                                                                # UNIVARIATE MODELS  #
-                                                                ######################
+                                                                    ######################
+                                                                    # UNIVARIATE MODELS  #
+                                                                    ######################
 
 # log(S+1) ~ log(area) 
 
@@ -177,15 +220,14 @@ ggplot(data, aes(x=log_slope, y=log_s1)) +
   theme(axis.ticks = element_line(size=2))
 
 
-  ##############################################################################################################################################################
+##############################################################################################################################################################
   
                                                                     ########################
                                                                     # MULTIVARIATE MODELS  #
                                                                     ########################
-  
-  
+
 # Asess collinearity of predictors together  
-z <- cbind(data$area, data$dist_nn, data$distw_ml, data$slope, data$wrack_gperm2)
+z <- cbind(isl_master$log_area, isl_master$log_dist_nn, isl_master$log_dist_ml, isl_master$log_slope, isl_master$log_wrack1)
 colnames(z) <- c("area", "NN", "dist ml", "slope", "wrack")
 cor(z)
 pairs(z)
@@ -204,6 +246,39 @@ panel.cor <- function(x, y, digits=2, prefix="", cex.cor, ...)
 pairs(z, upper.panel = panel.cor, cex=1.75, pch=16)
   
   
+# global model VIF 
+m_global <- glm(n_spp ~ log_area + log_dist_nn + log_dist_ml + log_slope + log_wrack1, family=poisson(link = "log"), data=isl_master)
+summary(m_global)
+hist(resid(m_global))
+plot(resid(m_global))
+qqnorm(resid(m_global))
+qqline(resid(m_global))
+
+vif(m_global)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
